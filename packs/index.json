@@ -1,0 +1,14 @@
+{
+  "packs": [
+    {
+      "id": "minimal-pairs-v1",
+      "file": "packs/minimal-pairs-v1.json",
+      "title": "Tiny word listen"
+    },
+    {
+      "id": "short-vowels-v1",
+      "file": "packs/short-vowels-v1.json",
+      "title": "Short vowels"
+    }
+  ]
+}

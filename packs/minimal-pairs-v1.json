@@ -12,9 +12,8 @@
   ],
   "ui_locale": "en",
   "lives": 3,
-  "win_corrects": 8,
   "prompt_mode": "listen",
-  "notes": "Target audio = G1 Clear Female (word taps). Swap pack to change words/voice.",
+  "notes": "Target audio = G1 Clear Female (word taps). Swap pack to change words/voice. Stages never end — no YOU WIN.",
   "items": [
     {
       "item_id": "mom01",

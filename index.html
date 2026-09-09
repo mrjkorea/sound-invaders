@@ -24,6 +24,45 @@
         background: #05060f;
         color: #f4ead5;
       }
+      .pack-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 0 0 12px;
+        font-family: "Tektur", "Eurostile", "Arial Narrow", sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        color: #cbbfa6;
+        text-align: left;
+      }
+      #pack-pick {
+        font-family: "Fredoka", "Trebuchet MS", "Segoe UI Rounded", sans-serif;
+        font-size: 16px;
+        letter-spacing: 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(46, 230, 214, 0.35);
+        background: #050810b3;
+        color: #f4ead5;
+        width: 100%;
+      }
+      .device-hint {
+        margin: 0 0 10px;
+        font-size: 14px;
+        line-height: 1.35;
+        color: #cbbfa6;
+        text-align: left;
+      }
+      .howto-link {
+        display: inline-block;
+        margin: 0 0 14px;
+        font-family: "Tektur", "Eurostile", "Arial Narrow", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        color: #2ee6d6;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(46, 230, 214, 0.45);
+      }
     </style>
     <script type="module" crossorigin src="./assets/index-DX4cnlFF.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-B0zWibXi.css">
@@ -81,12 +120,57 @@
           <h1>SOUND INVADERS</h1>
           <ol class="howto">
             <li>2 shots per word set. Make them count.</li>
-            <li>Bump a space station = extra life. Grab ice, tap ICE to freeze.</li>
+            <li>Bump a space station = extra life. Grab ice, tap ICE (or I) to freeze.</li>
             <li>3 lives. Stages never end — they get faster. Highest score wins.</li>
           </ol>
+          <label class="pack-row">WORD PACK
+            <select id="pack-pick" aria-label="Word pack"></select>
+          </label>
+          <p class="device-hint">Phone: SLIDE left, SHOOT right. Computer: arrows / A D move, space / X shoot, I ice.</p>
+          <a class="howto-link" href="./HOW-TO-PLAY.html">HOW TO PLAY</a>
           <button id="btn-start" type="button">TAP TO START</button>
         </div>
       </div>
     </div>
+    <script>
+      (function () {
+        const sel = document.getElementById("pack-pick");
+        if (!sel) return;
+        const params = new URLSearchParams(location.search);
+        const current = params.get("pack") || "packs/minimal-pairs-v1.json";
+        const norm = (p) => String(p || "").replace(/^\.\//, "").replace(/^\/+/, "");
+        fetch("./packs/index.json", { cache: "no-cache" })
+          .then((r) => {
+            if (!r.ok) throw new Error(String(r.status));
+            return r.json();
+          })
+          .then((data) => {
+            const packs = Array.isArray(data.packs) ? data.packs : [];
+            const row = sel.closest(".pack-row");
+            if (!packs.length) {
+              if (row) row.hidden = true;
+              return;
+            }
+            sel.innerHTML = "";
+            for (const pack of packs) {
+              const opt = document.createElement("option");
+              opt.value = pack.file;
+              opt.textContent = pack.title || pack.id;
+              sel.appendChild(opt);
+            }
+            const match = packs.find((pack) => norm(pack.file) === norm(current));
+            if (match) sel.value = match.file;
+            sel.addEventListener("change", () => {
+              const u = new URL(location.href);
+              u.searchParams.set("pack", sel.value);
+              location.assign(u.pathname + u.search + u.hash);
+            });
+          })
+          .catch(() => {
+            const row = sel.closest(".pack-row");
+            if (row) row.hidden = true;
+          });
+      })();
+    </script>
   </body>
 </html>

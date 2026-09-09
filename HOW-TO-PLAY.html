@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#05060f" />
+    <title>How to play · Sound Invaders</title>
+    <link rel="icon" href="./textures/pilot.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Tektur:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --void: #05060f;
+        --cream: #f4ead5;
+        --cream-dim: #cbbfa6;
+        --gold: #e0b03a;
+        --teal: #2ee6d6;
+        --ink: #0b0d16;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--void);
+        color: var(--cream);
+        font-family: Fredoka, "Trebuchet MS", "Segoe UI Rounded", sans-serif;
+      }
+      main {
+        width: min(640px, 100%);
+        margin: 0 auto;
+        padding: calc(20px + env(safe-area-inset-top, 0px)) 18px
+          calc(28px + env(safe-area-inset-bottom, 0px));
+      }
+      .pilot {
+        display: block;
+        width: 88px;
+        height: 88px;
+        margin: 0 auto 8px;
+        object-fit: contain;
+      }
+      .kicker {
+        margin: 0;
+        text-align: center;
+        font-family: Tektur, Eurostile, "Arial Narrow", sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.28em;
+        color: var(--teal);
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 8px 0 16px;
+        text-align: center;
+        font-family: Tektur, Eurostile, "Arial Narrow", sans-serif;
+        font-size: clamp(26px, 7vw, 36px);
+        letter-spacing: 0.06em;
+      }
+      h2 {
+        margin: 22px 0 8px;
+        font-family: Tektur, Eurostile, "Arial Narrow", sans-serif;
+        font-size: 14px;
+        letter-spacing: 0.16em;
+        color: var(--gold);
+      }
+      p,
+      li {
+        font-size: 17px;
+        line-height: 1.4;
+      }
+      ol,
+      ul {
+        padding-left: 1.2em;
+      }
+      li {
+        margin: 0 0 8px;
+      }
+      kbd {
+        display: inline-block;
+        padding: 1px 7px;
+        border-radius: 6px;
+        border: 1px solid rgba(224, 176, 58, 0.45);
+        background: #0c0e1c;
+        font-family: Tektur, Eurostile, "Arial Narrow", sans-serif;
+        font-size: 13px;
+      }
+      .play {
+        display: block;
+        width: 100%;
+        margin-top: 22px;
+        border: 0;
+        border-radius: 16px;
+        padding: 16px 12px;
+        font-family: Tektur, Eurostile, "Arial Narrow", sans-serif;
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: 0.18em;
+        color: var(--ink);
+        background: linear-gradient(180deg, #fff1c4, var(--gold));
+        text-align: center;
+        text-decoration: none;
+      }
+      .muted {
+        color: var(--cream-dim);
+        font-size: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img class="pilot" src="./textures/pilot.png" alt="" />
+      <p class="kicker">MRJ · listen &amp; shoot</p>
+      <h1>HOW TO PLAY</h1>
+      <p>
+        Same game on phone, tablet, classroom PC, and laptop. Listen to the word,
+        then shoot the matching rock.
+      </p>
+
+      <h2>Listen</h2>
+      <ul>
+        <li>Word audio is a baked MP3 from the JSON pack. It repeats until you shoot.</li>
+        <li>No internet voice, no browser speak — offline files only.</li>
+      </ul>
+
+      <h2>Shoot</h2>
+      <ul>
+        <li>2 shots per word set. Make them count.</li>
+        <li>Correct rock = points and a new wave. Wrong rock = oops (streak resets).</li>
+        <li>If the right rock slips past, you hear it again.</li>
+      </ul>
+
+      <h2>Pickups</h2>
+      <ul>
+        <li>Bump a space station = extra life (up to 5).</li>
+        <li>Grab ice, then tap <strong>ICE</strong> (or press <kbd>I</kbd> / <kbd>C</kbd>) to freeze rocks.</li>
+      </ul>
+
+      <h2>Lives &amp; stages</h2>
+      <ul>
+        <li>3 lives. Touching a word rock costs a life.</li>
+        <li>Stages never end — they get faster. Highest score wins. There is no fake YOU WIN.</li>
+      </ul>
+
+      <h2>Phone / tablet</h2>
+      <ul>
+        <li>Left half: SLIDE to steer.</li>
+        <li>Right half or the SHOOT button: fire.</li>
+        <li>ICE button lights up when you have a freeze.</li>
+      </ul>
+
+      <h2>Computer / classroom PC</h2>
+      <ul>
+        <li>Move: arrow keys or <kbd>A</kbd> <kbd>D</kbd></li>
+        <li>Shoot: <kbd>space</kbd> / <kbd>X</kbd> / <kbd>L</kbd> (space also starts the game)</li>
+        <li>Ice: <kbd>I</kbd> or <kbd>C</kbd></li>
+        <li>You can also click SHOOT / ICE with a mouse.</li>
+      </ul>
+
+      <h2>Word packs</h2>
+      <p>
+        Change words on the title screen (WORD PACK), or add
+        <span class="muted">?pack=packs/short-vowels-v1.json</span> to the URL.
+        The engine loads JSON — the word list is not hardcoded.
+      </p>
+
+      <a class="play" href="./index.html">PLAY SOUND INVADERS</a>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+{
+  "pack_id": "short-vowels-v1",
+  "title": "Sound Invaders — short vowels",
+  "module_id": "sound_invaders",
+  "activity_id": "hear_shoot",
+  "api_version": "0.1.0",
+  "skill_tags": [
+    "listening",
+    "phonics-words",
+    "short-vowels",
+    "a1"
+  ],
+  "ui_locale": "en",
+  "lives": 3,
+  "prompt_mode": "listen",
+  "notes": "Target audio = G1 Clear Female (word taps). Swap pack to change words/voice. Stages never end.",
+  "items": [
+    {
+      "item_id": "bat01",
+      "prompt": "bat",
+      "correct": "bat",
+      "wrong": [
+        "bet",
+        "bit",
+        "but"
+      ],
+      "audio": "audio/words/bat.mp3",
+      "skill_tags": [
+        "short-vowels"
+      ]
+    },
+    {
+      "item_id": "cat01",
+      "prompt": "cat",
+      "correct": "cat",
+      "wrong": [
+        "cut",
+        "cot",
+        "kit"
+      ],
+      "audio": "audio/words/cat.mp3",
+      "skill_tags": [
+        "short-vowels"
+      ]
+    },
+    {
+      "item_id": "fan01",
+      "prompt": "fan",
+      "correct": "fan",
+      "wrong": [
+        "fin",
+        "fun",
+        "van"
+      ],
+      "audio": "audio/words/fan.mp3",
+      "skill_tags": [
+        "short-vowels"
+      ]
+    },
+    {
+      "item_id": "pin01",
+      "prompt": "pin",
+      "correct": "pin",
+      "wrong": [
+        "pen",
+        "pan",
+        "pun"
+      ],
+      "audio": "audio/words/pin.mp3",
+      "skill_tags": [
+        "short-vowels"
+      ]
+    }
+  ],
+  "voice_id": "18aea83acb7f40c3b0291ac6d575398b",
+  "voice_name": "g1_clear_female"
+}
