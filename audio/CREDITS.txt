@@ -1,0 +1,10 @@
+Sound Invaders audio (local files only — no speechSynthesis, no /api/tts).
+
+music-out-there.mp3
+  "Space Music: Out There" by yd — License: CC0
+  https://opengameart.org/content/space-music-out-there  (first 2 min, re-encoded 64 kbps mp3)
+sfx/*.mp3 (laser, boom, buzz, thud, chime, sparkle, pop, lose, whoosh)
+  Procedural, made for MRJ games and baked to mp3 — CC0.
+words/*.mp3
+  Baked word clips named in each JSON pack ("audio").
+Older *.wav files are left in the repo, unused by v3.

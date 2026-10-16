@@ -1,176 +1,21 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#05060f" />
+    <meta http-equiv="Cache-Control" content="no-store" />
+    <meta name="mrj-build" content="20261016-rebuild" />
     <title>Sound Invaders</title>
-    <link rel="icon" href="./textures/pilot.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Tektur:wght@500;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      html,
-      body {
-        margin: 0;
-        background: #05060f;
-        color: #f4ead5;
-      }
-      .pack-row {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin: 0 0 12px;
-        font-family: "Tektur", "Eurostile", "Arial Narrow", sans-serif;
-        font-size: 11px;
-        letter-spacing: 0.18em;
-        color: #cbbfa6;
-        text-align: left;
-      }
-      #pack-pick {
-        font-family: "Fredoka", "Trebuchet MS", "Segoe UI Rounded", sans-serif;
-        font-size: 16px;
-        letter-spacing: 0;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(46, 230, 214, 0.35);
-        background: #050810b3;
-        color: #f4ead5;
-        width: 100%;
-      }
-      .device-hint {
-        margin: 0 0 10px;
-        font-size: 14px;
-        line-height: 1.35;
-        color: #cbbfa6;
-        text-align: left;
-      }
-      .howto-link {
-        display: inline-block;
-        margin: 0 0 14px;
-        font-family: "Tektur", "Eurostile", "Arial Narrow", sans-serif;
-        font-size: 12px;
-        letter-spacing: 0.16em;
-        color: #2ee6d6;
-        text-decoration: none;
-        border-bottom: 1px solid rgba(46, 230, 214, 0.45);
-      }
-    </style>
-    <script type="module" crossorigin src="./assets/index-BJuyiBBq.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-B0zWibXi.css">
+    <link rel="icon" href="./textures/pilot.webp" />
+    <link rel="preload" href="./textures/nebula.webp" as="image" type="image/webp" />
+    <meta name="si-default-pack" content="./packs/minimal-pairs-v1.json" />
+    <script type="module" crossorigin src="./assets/index-CWAfWb0G.js?v=20261016-rebuild"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-C-RdHbZk.css?v=20261016-rebuild">
   </head>
   <body>
-    <div id="app">
-      <canvas id="view"></canvas>
-
-      <div id="vignette"></div>
-      <div id="freeze-veil"></div>
-      <div id="flash"></div>
-
-      <div id="hud" class="hud hidden" aria-live="polite">
-        <div class="hud-top">
-          <button id="btn-mute" class="icon-btn" type="button" aria-label="Mute music">
-            <svg id="icon-music" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M9 5v10.2A3.2 3.2 0 1 0 11 18V9h6V5H9z"
-              />
-            </svg>
-            <span id="mute-x" class="mute-x hidden">/</span>
-          </button>
-          <div id="lives" class="lives"></div>
-          <div class="hud-score">
-            <span class="label">SCORE</span>
-            <span id="score">0</span>
-          </div>
-        </div>
-        <div class="hud-progress">
-          <span id="progress-label">STAGE 1</span>
-          <div class="pips" id="pips"></div>
-          <div id="ammo" class="ammo" aria-label="shots"></div>
-        </div>
-      </div>
-
-      <div id="touch" class="touch hidden">
-        <div id="steer-zone" class="steer-zone">
-          <span id="steer-hint" class="steer-hint">SLIDE</span>
-        </div>
-        <div id="shoot-zone" class="shoot-zone">
-          <button id="btn-ice" type="button" aria-label="Use ice" disabled>ICE</button>
-          <button id="btn-shoot" type="button" aria-label="Shoot">
-            <span>SHOOT</span>
-          </button>
-        </div>
-      </div>
-
-      <div id="pops" class="pops"></div>
-
-      <div id="overlay" class="overlay">
-        <div class="card" id="card">
-          <img class="pilot" src="./textures/pilot.png" alt="" />
-          <p class="kicker">MRJ · listen &amp; shoot</p>
-          <h1>SOUND INVADERS</h1>
-          <ol class="howto">
-            <li>2 shots per word set. Make them count.</li>
-            <li>Bump a space station = extra life. Grab ice, tap ICE (or I) to freeze.</li>
-            <li>3 lives. Stages never end — they get faster. Highest score wins.</li>
-          </ol>
-          <label class="pack-row">WORD PACK
-            <select id="pack-pick" aria-label="Word pack"></select>
-          </label>
-          <p class="device-hint">Phone: SLIDE left, SHOOT right. Computer: arrows / A D move, space / X shoot, I ice.</p>
-          <a class="howto-link" href="./HOW-TO-PLAY.html">HOW TO PLAY</a>
-          <button id="btn-start" type="button">TAP TO START</button>
-        </div>
-      </div>
-    </div>
-    <script>
-      (function () {
-        const sel = document.getElementById("pack-pick");
-        if (!sel) return;
-        const params = new URLSearchParams(location.search);
-        const current = params.get("pack") || "packs/minimal-pairs-v1.json";
-        const norm = (p) => String(p || "").replace(/^\.\//, "").replace(/^\/+/, "");
-        fetch("./packs/index.json", { cache: "no-cache" })
-          .then((r) => {
-            if (!r.ok) throw new Error(String(r.status));
-            return r.json();
-          })
-          .then((data) => {
-            const packs = Array.isArray(data.packs) ? data.packs : [];
-            const row = sel.closest(".pack-row");
-            if (!packs.length) {
-              if (row) row.hidden = true;
-              return;
-            }
-            sel.innerHTML = "";
-            for (const pack of packs) {
-              const opt = document.createElement("option");
-              opt.value = pack.file;
-              opt.textContent = pack.title || pack.id;
-              sel.appendChild(opt);
-            }
-            const match = packs.find((pack) => norm(pack.file) === norm(current));
-            if (match) sel.value = match.file;
-            sel.addEventListener("change", () => {
-              const u = new URL(location.href);
-              u.searchParams.set("pack", sel.value);
-              location.assign(u.pathname + u.search + u.hash);
-            });
-          })
-          .catch(() => {
-            const row = sel.closest(".pack-row");
-            if (row) row.hidden = true;
-          });
-      })();
-    </script>
+    <div id="app"></div>
   </body>
 </html>
