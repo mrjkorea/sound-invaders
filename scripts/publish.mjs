@@ -49,7 +49,7 @@ if (wmDir) {
   const copy = (rel) => { fs.mkdirSync(path.dirname(path.join(wmDir, rel)), { recursive: true }); fs.copyFileSync(path.join(root, rel), path.join(wmDir, rel)); };
   for (const f of ["music-out-there.mp3", "CREDITS.txt"]) copy("audio/" + f);
   for (const f of fs.readdirSync(path.join(root, "audio/sfx"))) copy("audio/sfx/" + f);
-  for (const f of ["nebula.webp", "pilot.webp", "asteroid-a.webp", "asteroid-b.webp"]) copy("textures/" + f);
+  for (const f of ["nebula.webp", "pilot.webp"]) copy("textures/" + f);
   for (const f of fs.readdirSync(path.join(root, "models"))) copy("models/" + f);
 }
 console.log(`published ${js} ${css} -> ${outDir} (build ${build})`);

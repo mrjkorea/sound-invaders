@@ -7,4 +7,3 @@ sfx/*.mp3 (laser, boom, buzz, thud, chime, sparkle, pop, lose, whoosh)
   Procedural, made for MRJ games and baked to mp3 — CC0.
 words/*.mp3
   Baked word clips named in each JSON pack ("audio").
-Older *.wav files are left in the repo, unused by v3.

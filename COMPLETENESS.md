@@ -12,14 +12,14 @@ Play files on disk and on the live host (HTTP 200 unless noted):
 | --- | --- | --- |
 | `index.html` | Shell, HUD, title HOW-TO, pack picker | OK (relative `./` assets) |
 | `assets/index-DX4cnlFF.js` | Engine + Three.js | Patched (see below) |
-| `assets/index-B0zWibXi.css` | Layout for phone + PC | OK |
+| `assets/index-*.js/.css` | 3D v2 build (see `assets/.build-files.json`) | OK |
 | `packs/minimal-pairs-v1.json` | Default word pack | OK, 10 items, all `audio` files present |
 | `packs/short-vowels-v1.json` | Second pack (new) | 4 items, existing baked MP3s only |
 | `packs/index.json` | Pack catalog for title swap | New |
 | `audio/words/*.mp3` | Word voice (10 files) | Valid MPEG, ~0.7s, non-silent RMS |
-| `audio/*.wav` | Music + SFX | Valid PCM, non-silent |
-| `textures/*` | Nebula, rocks, glow, explosion, `pilot.png` | OK |
-| `fonts/helvetiker_bold.typeface.json` | Rock lettering | OK |
+| `audio/music-out-there.mp3`, `audio/sfx/*.mp3` | Music + SFX (baked) | OK |
+| `textures/*.webp` | Nebula backdrop, pilot icon | OK |
+| `models/*.glb` | Kenney Space Kit (CC0) ship, asteroids, junk | OK |
 | `.nojekyll` | Pages must serve `_`/`./` paths | Present |
 | `HOW-TO-PLAY.html` | Full how-to | Was **404** on live; added |
 
@@ -31,7 +31,7 @@ Gameplay (local static server, desktop + 390×844 phone):
 - Pack swap reloads `?pack=packs/short-vowels-v1.json` and fetches that file (not a hardcoded word list).
 - HOW TO PLAY link → `HOW-TO-PLAY.html` → PLAY returns to the game.
 - TAP TO START and **space** start play. Overlay hides; HUD + SLIDE / SHOOT / ICE show.
-- Default pack loops baked `audio/words/sheep.mp3` (200). Short-vowels pack looped `pin.mp3` (200). All SFX + `music.wav` 200.
+- Default pack loops baked `audio/words/sheep.mp3` (200). Short-vowels pack looped `pin.mp3` (200). All SFX + music 200.
 - Two ammo pips; after two spent shots the SHOOT button gets `.empty`. Correct hit scored 100 and started the next wave (ammo reset). Rocks show pack words (e.g. PEN / PIN / PAN).
 - No `YOU WIN` overlay. End screen remains `GAME OVER` when lives hit 0. Stages use `pr(corrects)` and keep accelerating.
 - Station/ice pickups still spawn in the wave builder (`kind === "station"|"ice"`). ICE stays disabled until a grab; keyboard `I` / `C` wired to the same freeze.
@@ -67,3 +67,6 @@ Word MP3s, textures, and the JSON engine were already present and audible/valid.
 - No on-HUD “replay word” button; the baked clip already repeats until you shoot.
 - Cloud browser has no speakers: loudness was measured with ffmpeg (all clips have real peak/RMS). Classroom PCs should unmute the tab.
 - Live site updates only after this branch is **merged to `main`** (Pages source). Until then https://mrjkorea.github.io/sound-invaders/ is still the previous commit.
+
+
+_2026-10-19 cleanup: removed the pre-3D bundles, the old .wav audio, the JPG/PNG textures and the unused 3D font; nothing in the v2 build loads them._
