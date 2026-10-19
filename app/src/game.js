@@ -11,17 +11,17 @@ import { createAudio } from "./kit/audio.js";
 import { el, esc } from "./kit/ui.js";
 import { Bag, waveWords, mediaUrl, hash, seeded } from "./pack.js";
 import { CFG, stageFor, POINTS } from "./rules.js";
-import { loadImg, makeStars, drawSpace, rockShape, drawRock, drawPlate, drawJunk, drawPickup, drawShip, drawLaser } from "./art.js";
+import { rockShape } from "./art.js";
+import { createSpace3D } from "./space3d.js";
 
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (i) => { const t = (Math.random() * 16) | 0; return (i === "x" ? t : (t & 3) | 8).toString(16); }));
 
 export async function startGame(host, { pack, wm = false, student = "", quality, lb = "" } = {}) {
-  const stage = createStage(host, { quality });
+  const space = await createSpace3D(host, { quality });
+  const stage = createStage(host, { quality: "high" }); // transparent 2D overlay: floating text + letter shards + flashes only
+  stage.canvas.classList.add("overlay");
   const fx = createFx(stage);
   const audio = createAudio({ sfx: { laser: "./audio/sfx/laser.mp3", boom: "./audio/sfx/boom.mp3", wrong: "./audio/sfx/buzz.mp3", miss: "./audio/sfx/thud.mp3", pickup: "./audio/sfx/chime.mp3", ice: "./audio/sfx/sparkle.mp3", cue: "./audio/sfx/pop.mp3", over: "./audio/sfx/lose.mp3", whoosh: "./audio/sfx/whoosh.mp3" }, music: "./audio/music-out-there.mp3", musicVol: 0.26 });
-  const [neb, pilot, rockA, rockB] = await Promise.all(["./textures/nebula.webp", "./textures/pilot.webp", "./textures/asteroid-a.webp", "./textures/asteroid-b.webp"].map(loadImg));
-  const pats = [rockA, rockB].map((im) => (im ? stage.g.createPattern(im, "repeat") : null));
-  const stars = makeStars(stage.low ? 90 : 200);
   const touch = window.matchMedia && matchMedia("(pointer: coarse)").matches;
 
   const hud = el(`<div class="hud si">
@@ -64,12 +64,13 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
   // world <-> screen
   let u = 40, halfW = 8, halfH = 10;
   const controlPx = () => (touch ? 118 : 0);
-  stage.onResize = (st) => { u = Math.min(st.h / 17, st.w / 10.7); halfW = st.w / 2 / u; halfH = st.h / 2 / u; };
+  stage.onResize = (st) => { u = Math.min(st.h / 17, st.w / 10.7); halfW = st.w / 2 / u; halfH = st.h / 2 / u; space.setView(halfW, halfH); };
+  space.stage.onResize = () => stage.onResize(stage);
   stage.onResize(stage);
   const sx = (x) => stage.w / 2 + x * u, sy = (y) => stage.h / 2 - y * u;
   const shipY = () => -halfH + (controlPx() / u) + 1.35;
   const spawnY = () => halfH + 1.35, bottomY = () => -halfH - 1.2;
-  const clampX = (o) => { const n = (o.hitW || 0.85) + 0.2, s = Math.max(0.25, halfW - n); o.x = clamp(o.x, -s, s); };
+  const clampX = (o) => { const n = Math.max(o.hitW || 0.85, o.kind === "word" ? 1.3 : 0) + 0.2, s = Math.max(0.25, halfW - n); o.x = clamp(o.x, -s, s); };
 
   // ---------- HUD ----------
   function setLives() { $("#lives").innerHTML = Array.from({ length: CFG.maxLives }, (_, n) => `<i class="life${n < S.lives ? " on" : ""}"></i>`).join(""); }
@@ -133,16 +134,12 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
     const b = $("#btn-shoot"); b.classList.add("fire"); setTimeout(() => b.classList.remove("fire"), 120);
     audio.play("laser", { vol: 0.5, rate: 0.92 + Math.random() * 0.16 });
     lasers.push({ x: S.shipX, y: shipY() + 0.7, alive: true });
-    fx.burst(sx(S.shipX), sy(shipY() + 0.9), { n: 6, color: ["#7ff5ff", "#fff"], speed: 120, size: 3, life: 0.25, grav: 0 });
+    space.muzzle(S.shipX, shipY() + 0.9);
     try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
   }
   function explodeAt(x, y, big, colors) {
-    const X = sx(x), Y = sy(y);
-    fx.burst(X, Y, { n: big ? 46 : 18, color: colors || ["#fff3c4", "#ffb35c", "#ff6a3d", "#ffd36b"], speed: big ? 420 : 240, size: big ? 6 : 4, life: big ? 0.9 : 0.5, grav: 60, drag: 0.95 });
-    rings.push({ x: X, y: Y, t: 0, max: big ? 0.5 : 0.3, r: (big ? 2.6 : 1.4) * u, c: colors ? colors[0] : "#ffd36b" });
-    fx.shake(big ? 12 : 6);
+    space.explode(x, y, big, colors);
   }
-  const rings = [];
   function shatterWord(R) { // letters fly apart
     const X = sx(R.x), Y = sy(R.y) - R.r * u * 0.1, chars = [...R.word];
     chars.forEach((ch, i) => shards.push({ ch, x: X + (i - (chars.length - 1) / 2) * 14, y: Y, vx: (Math.random() - 0.5) * 420, vy: -150 - Math.random() * 380, rot: 0, vr: (Math.random() - 0.5) * 10, life: 1.2 + Math.random() * 0.4 }));
@@ -183,7 +180,7 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
     if (S.waveBusy) return;
     S.waveBusy = true; stopTargetLoop();
     const item = bag.current, endIso = new Date().toISOString(), lat = performance.now() - S.trialT0;
-    shatterWord(R); explodeAt(R.x, R.y, true, ["#ff7a8a", "#ffb35c", "#fff"]); fx.flash("#ff2040", 0.35); fx.shake(18);
+    shatterWord(R); explodeAt(R.x, R.y, true, ["#ff7a8a", "#ffb35c", "#fff"]); fx.flash("#ff2040", 0.35); space.shake(0.5);
     audio.play("miss", { vol: 0.9 }); audio.play("boom", { vol: 0.6, rate: 0.7 });
     pop(R.x, R.y, "miss", true); S.streak = 0; combo();
     record({ item, response: "*miss", correct: false, latencyMs: lat, points: 0, startedAt: S.trialStartIso, endedAt: endIso });
@@ -193,8 +190,8 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
   function loseLife() { S.lives = Math.max(0, S.lives - 1); S.invuln = CFG.invuln; setLives(); if (S.lives <= 0) setTimeout(gameOver, 500); }
   function grab(P) {
     P.alive = false;
-    if (P.kind === "station") { S.lives = Math.min(CFG.maxLives, S.lives + 1); setLives(); pop(P.x, P.y, "+1 LIFE"); audio.play("pickup", { vol: 0.6 }); fx.burst(sx(P.x), sy(P.y), { n: 24, color: ["#2ee6d6", "#fff"], speed: 220, size: 4, life: 0.7, grav: 0 }); }
-    else { S.ice = true; setIce(); pop(P.x, P.y, "ICE"); audio.play("ice", { vol: 0.6 }); fx.burst(sx(P.x), sy(P.y), { n: 24, color: ["#cfe6ff", "#fff", "#8fc4ff"], speed: 220, size: 4, life: 0.7, grav: 0 }); }
+    if (P.kind === "station") { S.lives = Math.min(CFG.maxLives, S.lives + 1); setLives(); pop(P.x, P.y, "+1 LIFE"); audio.play("pickup", { vol: 0.6 }); space.pickupFx(P.x, P.y, 0x2ee6d6); }
+    else { S.ice = true; setIce(); pop(P.x, P.y, "ICE"); audio.play("ice", { vol: 0.6 }); space.pickupFx(P.x, P.y, 0xcfe6ff); }
   }
   function useIce() {
     if (S.state !== "play" || !S.ice) return;
@@ -245,18 +242,19 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
   });
   window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
   let steer = null; const fire = new Set();
-  const toX = (px) => { const t = clamp(px / Math.max(stage.w * 0.5, 1), 0, 1), s = clamp(t * 1.14 - 0.07, 0, 1), n = CFG.shipPad; return -halfW + n + s * (2 * (halfW - n)); };
+  window.addEventListener("blur", () => { keys.clear(); fire.clear(); steer = null; S.targetX = null; }); // no stuck keys after alt-tab
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { keys.clear(); fire.clear(); } });
+  // same as the original: left half of the screen = steer (finger/mouse position maps across the whole lane), right half = fire
+  const toX = (px) => { const t = clamp(px / Math.max(stage.w * 0.5, 1), 0, 1), n = CFG.shipPad; return -halfW + n + t * (2 * (halfW - n)); };
   host.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button, a, select, input, label, .si-card")) return;
     if (S.state !== "play") return;
-    if (!touch) { // mouse: click anywhere = steer there + shoot
-      S.targetX = (e.clientX - stage.w / 2) / u; steer = e.pointerId; shoot(); return;
-    }
-    if (e.clientX < stage.w / 2) { steer = e.pointerId; S.targetX = toX(e.clientX); $("#steer-hint").classList.add("gone"); } else { fire.add(e.pointerId); shoot(); }
+    if (e.clientX < stage.w / 2) { steer = e.pointerId; S.targetX = toX(e.clientX); $("#steer-hint").classList.add("gone"); try { host.setPointerCapture(e.pointerId); } catch (x) {} }
+    else { fire.add(e.pointerId); shoot(); }
   });
-  host.addEventListener("pointermove", (e) => { if (steer === e.pointerId) S.targetX = touch ? toX(e.clientX) : (e.clientX - stage.w / 2) / u; else if (!touch && S.state === "play" && e.pointerType === "mouse") { S.targetX = (e.clientX - stage.w / 2) / u; } });
-  const up = (e) => { if (steer === e.pointerId) { steer = null; if (touch) S.targetX = null; } fire.delete(e.pointerId); };
-  host.addEventListener("pointerup", up); host.addEventListener("pointercancel", up);
+  host.addEventListener("pointermove", (e) => { if (steer === e.pointerId) S.targetX = toX(e.clientX); });
+  const up = (e) => { if (steer === e.pointerId) { steer = null; S.targetX = null; } fire.delete(e.pointerId); };
+  host.addEventListener("pointerup", up); host.addEventListener("pointercancel", up); host.addEventListener("lostpointercapture", up);
   const sb = $("#btn-shoot");
   sb.addEventListener("pointerdown", (e) => { e.stopPropagation(); e.preventDefault(); fire.add(e.pointerId); try { sb.setPointerCapture(e.pointerId); } catch (x) {} shoot(); });
   sb.addEventListener("pointerup", (e) => { e.stopPropagation(); fire.delete(e.pointerId); });
@@ -264,23 +262,31 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
   $("#btn-start").addEventListener("click", begin);
 
   // ---------- frame ----------
-  let tilt = 0;
+  let tilt = 0, vel = 0;
   stage.run((dt, st) => {
-    const { g, w, h, t } = st;
+    const { g, w, h } = st;
     S.cool = Math.max(0, S.cool - dt); S.invuln = Math.max(0, S.invuln - dt);
     if (S.freeze > 0) { S.freeze = Math.max(0, S.freeze - dt); if (S.freeze <= 0) { for (const r of rocks) if (r._base != null) r.speed = r._base; $("#freeze").classList.remove("on"); } }
     S.speedFx += (1 - S.speedFx) * Math.min(1, dt * 2);
     const sY = shipY();
     if (S.state === "play") {
-      // ship steering
+      // ship steering: keys = velocity with fast acceleration and a hard stop on release (frame-rate independent, no drift, no sticking);
+      // pointer/touch on the left half = go to that spot (eased). Keys always win over a stale pointer target.
       const lo = -halfW + CFG.shipPad, hi = halfW - CFG.shipPad;
-      let a = S.shipX;
-      if (S.targetX != null && (steer != null || !touch)) a = S.targetX;
-      if (keys.has("arrowleft") || keys.has("a")) { a = S.shipX - CFG.shipSpeed * dt; S.targetX = null; }
-      if (keys.has("arrowright") || keys.has("d")) { a = S.shipX + CFG.shipSpeed * dt; S.targetX = null; }
-      a = clamp(a, lo, hi);
-      const prev = S.shipX; S.shipX += (a - S.shipX) * Math.min(1, CFG.shipLerp * dt);
-      tilt += (clamp((S.shipX - prev) / Math.max(dt, 0.001) * 0.02, -0.35, 0.35) - tilt) * Math.min(1, dt * 10);
+      const dir = (keys.has("arrowright") || keys.has("d") ? 1 : 0) - (keys.has("arrowleft") || keys.has("a") ? 1 : 0);
+      const prev = S.shipX;
+      if (dir) {
+        S.targetX = steer != null ? S.targetX : null;
+        const want = dir * CFG.keySpeed;
+        const acc = Math.sign(want) !== Math.sign(vel) && vel !== 0 ? CFG.keyTurn : CFG.keyAccel; // reversing snaps fast
+        vel += clamp(want - vel, -acc * dt, acc * dt);
+        S.shipX = clamp(S.shipX + vel * dt, lo, hi); if (S.shipX === lo || S.shipX === hi) vel = 0;
+      } else if (S.targetX != null && steer != null) {
+        const a = clamp(S.targetX, lo, hi); S.shipX += (a - S.shipX) * (1 - Math.exp(-CFG.pointerEase * dt)); vel = 0;
+      } else if (S.targetX != null) { // API steer (tests / bots): same easing
+        const a = clamp(S.targetX, lo, hi); S.shipX += (a - S.shipX) * (1 - Math.exp(-CFG.pointerEase * dt)); vel = 0;
+      } else { vel = 0; } // key released = stop dead (no drift, no sticking)
+      tilt += (clamp((S.shipX - prev) / Math.max(dt, 0.001) * 0.03, -0.42, 0.42) - tilt) * Math.min(1, dt * 12);
       if (fire.size || keys.has(" ") || keys.has("x") || keys.has("l")) shoot();
       for (const r of rocks) if (r.alive) { r.y -= r.speed * dt; if (r.spin) r.rot += r.spin * dt * (r.speed > 0 ? 1 : 0.1); if (r.flash > 0) r.flash = Math.max(0, r.flash - dt * 2.4); r.born += dt; }
       for (const L of lasers) if (L.alive) { L.y += CFG.laserSpeed * dt; if (L.y > halfH + 1.5) L.alive = false; }
@@ -294,40 +300,27 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
         if (e.y < bottomY()) { const ok = e.correct; e.alive = false; if (ok && !S.waveBusy) { S.waveBusy = true; stopTargetLoop(); setTimeout(() => { S.state === "play" && nextWave({ same: true }); }, 400); } }
       }
       rocks = rocks.filter((r) => r.alive); lasers = lasers.filter((l) => l.alive);
-      if (!st.low && Math.random() < 0.6) fx.burst(sx(S.shipX) + (Math.random() - 0.5) * 8, sy(sY) + u * 0.95, { n: 1, color: ["#7ff5ff", "#2ea0ff"], speed: 90, size: 3, life: 0.35, grav: 200, dir: Math.PI / 2, spread: 0.4 });
-    } else { S.shipX += (0 - S.shipX) * Math.min(1, dt * 3); tilt *= 0.9; }
+    } else { S.shipX += (0 - S.shipX) * Math.min(1, dt * 3); tilt *= 0.9; vel = 0; }
     fx.update(dt);
     for (let i = shards.length - 1; i >= 0; i--) { const s = shards[i]; s.life -= dt; s.vy += 700 * dt; s.x += s.vx * dt; s.y += s.vy * dt; s.rot += s.vr * dt; if (s.life <= 0) shards.splice(i, 1); }
-    for (let i = rings.length - 1; i >= 0; i--) { rings[i].t += dt; if (rings[i].t > rings[i].max) rings.splice(i, 1); }
-
-    // ---- draw ----
-    g.save(); fx.applyShake(g);
     const spd = S.state === "play" ? (S.freeze > 0 ? 0.15 : 1) * S.speedFx * (0.8 + stageFor(S.corrects).fall * 0.25) : 0.6;
-    S.scroll = (S.scroll || 0) + dt * spd;
-    drawSpace(g, w, h, t, stars, neb, spd, st.low, S.scroll);
-    for (const r of rocks) {
-      const X = sx(r.x), Y = sy(r.y);
-      if (r.kind === "word") { drawRock(g, r, X, Y, u, pats[r.pal % 2], t, st.low); drawPlate(g, r.word, X, Y, u, r.flash); }
-      else if (r.kind === "junk") drawJunk(g, r, X, Y, u);
-      else drawPickup(g, r, X, Y, u, t);
-    }
-    for (const L of lasers) drawLaser(g, sx(L.x), sy(L.y), u);
-    for (const R of rings) { const k = R.t / R.max; g.strokeStyle = R.c; g.globalAlpha = 1 - k; g.lineWidth = 4 * (1 - k) + 1; g.beginPath(); g.arc(R.x, R.y, R.r * ease.outCubic(k), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; }
+    space.frame(dt, { shipX: S.shipX, shipY: sY, tilt, rocks, lasers, invuln: S.invuln, frozen: S.freeze > 0, speedFx: S.speedFx, spd, play: S.state === "play" });
+
+    // ---- 2D overlay: floating text, letter shards, flashes ----
+    g.clearRect(0, 0, w, h);
     g.textAlign = "center"; g.textBaseline = "middle"; g.font = `700 ${Math.max(16, u * 0.7)}px Fredoka, system-ui, sans-serif`;
-    for (const s of shards) { g.save(); g.translate(s.x, s.y); g.rotate(s.rot); g.globalAlpha = Math.min(1, s.life); g.fillStyle = "#ffe9b0"; g.fillText(s.ch, 0, 0); g.restore(); }
+    for (const s of shards) { g.save(); g.translate(s.x, s.y); g.rotate(s.rot); g.globalAlpha = Math.min(1, s.life); g.fillStyle = "#ffe9b0"; g.shadowColor = "#ffb35c"; g.shadowBlur = 12; g.fillText(s.ch, 0, 0); g.restore(); }
     g.globalAlpha = 1;
-    drawShip(g, pilot, sx(S.shipX), sy(sY), u, tilt, t, S.invuln > 0 ? S.invuln / CFG.invuln : 0, S.freeze > 0);
     fx.draw(g);
-    g.restore();
     fx.drawFlash(g, w, h);
   });
 
   setLives(); setAmmo(); setIce(); setProgress();
   const api = {
-    version: "3.0.0",
+    version: "3.1.0",
     getState: () => {
       const right = rocks.find((r) => r.kind === "word" && r.correct && r.alive);
-      return { state: S.state, lives: S.lives, score: S.score, corrects: S.corrects, streak: S.streak, stage: stageFor(S.corrects).id, shotsLeft: S.shotsLeft, shipX: S.shipX, waveBusy: S.waveBusy, ice: S.ice, frozen: S.freeze > 0, rocks: rocks.length, target: right ? { x: right.x, y: right.y, word: right.word } : null, wrong: rocks.filter((r) => r.kind === "word" && !r.correct).map((r) => ({ x: r.x, y: r.y })), shipY: shipY(), records: telemetry.records.length, low_quality: stage.low, wm, rule: "wm:right-count" };
+      return { state: S.state, lives: S.lives, score: S.score, corrects: S.corrects, streak: S.streak, stage: stageFor(S.corrects).id, shotsLeft: S.shotsLeft, shipX: S.shipX, waveBusy: S.waveBusy, ice: S.ice, frozen: S.freeze > 0, rocks: rocks.length, target: right ? { x: right.x, y: right.y, word: right.word } : null, wrong: rocks.filter((r) => r.kind === "word" && !r.correct).map((r) => ({ x: r.x, y: r.y })), shipY: shipY(), records: telemetry.records.length, low_quality: space.low, quality: space.stage.quality, fps: Math.round(space.stage.fps), vel, wm, rule: "wm:right-count" };
     },
     records: () => telemetry.records.slice(),
     steer: (x) => { S.targetX = x; },

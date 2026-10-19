@@ -1,0 +1,4 @@
+3D models: Kenney "Space Kit" (www.kenney.nl) — CC0 1.0 Universal (public domain). See KENNEY-SPACE-KIT-LICENSE.txt.
+  craft_speederA (player ship), meteor / meteor_detailed (word asteroids), rocks_smallA + barrel (space junk),
+  satelliteDish_detailed (space station pickup), rock_crystals (ice pickup).
+Rendering: three.js (MIT). Nebula / pilot textures and all audio: see ../audio/CREDITS.txt (unchanged).

@@ -8,7 +8,7 @@ const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 const out = path.resolve(process.argv[2] || "/workspace/space-shooter-shots");
 const wmDir = process.argv[3] ? path.resolve(process.argv[3]) : null;
 fs.mkdirSync(out, { recursive: true });
-const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".mp3": "audio/mpeg", ".woff2": "font/woff2", ".woff": "font/woff", ".webp": "image/webp", ".png": "image/png" };
+const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".mp3": "audio/mpeg", ".woff2": "font/woff2", ".woff": "font/woff", ".webp": "image/webp", ".png": "image/png", ".glb": "model/gltf-binary" };
 const serve = (dir, extra = {}) => new Promise((res) => { const s = http.createServer((req, rsp) => {
   const u = decodeURIComponent(req.url.split("?")[0]);
   if (extra[u]) { rsp.writeHead(200, { "content-type": "text/html; charset=utf-8" }); return rsp.end(extra[u]); }
@@ -30,7 +30,7 @@ async function newPage(browser, opts, bad) {
   return { ctx, page };
 }
 const st = (page) => page.evaluate(() => window.MRJSoundInvaders.getState());
-const browser = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required"] });
+const browser = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 const server = await serve(root); const B = `http://localhost:${server.address().port}`;
 try {
   const bad = [];
@@ -43,6 +43,18 @@ try {
   await page.waitForFunction(() => window.MRJSoundInvaders.getState().rocks >= 3, null, { timeout: 10000 });
   await page.waitForFunction(() => { const s = window.MRJSoundInvaders.getState(); return s.target && s.target.y < 6; }, null, { timeout: 15000 });
   await page.screenshot({ path: `${out}/02-wave-rocks.png` });
+  // movement input: keys move at once, stop dead on release, reverse; left-half pointer steers (same mapping as the original)
+  { const x0 = (await st(page)).shipX;
+    await page.keyboard.down("ArrowLeft"); await page.waitForTimeout(450); const xl = (await st(page)).shipX; await page.keyboard.up("ArrowLeft");
+    await page.waitForTimeout(120); const xr0 = (await st(page)).shipX; await page.waitForTimeout(350); const xr1 = (await st(page)).shipX;
+    await page.keyboard.down("d"); await page.waitForTimeout(600); const xd = (await st(page)).shipX; await page.keyboard.up("d");
+    check(xl < x0 - 0.5, `ArrowLeft moves the ship left (${x0.toFixed(2)} -> ${xl.toFixed(2)})`);
+    check(Math.abs(xr1 - xr0) < 0.05, `ship stops when the key is released (drift ${(xr1 - xr0).toFixed(3)})`);
+    check(xd > xr1 + 0.5, `D moves the ship right (${xr1.toFixed(2)} -> ${xd.toFixed(2)})`);
+    await page.mouse.move(40, 500); await page.mouse.down(); await page.waitForTimeout(500); const xp = (await st(page)).shipX; await page.mouse.up();
+    check(xp < xd - 1, `pointer on the far left of the left half steers the ship left (${xp.toFixed(2)})`);
+    await page.mouse.move(600, 300); await page.waitForTimeout(300); const xh = (await st(page)).shipX; await page.waitForTimeout(300);
+    check(Math.abs((await st(page)).shipX - xh) < 0.05, "mouse hover alone does not move the ship"); }
   await page.evaluate(PILOT, "right");
   await page.waitForFunction(() => window.MRJSoundInvaders.getState().corrects >= 1, null, { timeout: 30000 });
   await page.waitForTimeout(120); await page.screenshot({ path: `${out}/03-hit-explosion.png` });

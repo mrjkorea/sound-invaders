@@ -1,5 +1,5 @@
 // Gameplay constants — same numbers as the old engine.
-export const CFG = { shipSpeed: 16.5, shipLerp: 26, shipPad: 0.28, laserSpeed: 26, laserCooldown: 0.26, invuln: 0.85, nextWaveDelay: 0.9, missDelay: 1.05, shotsPerWave: 2, freezeSec: 2.6, maxLives: 5 };
+export const CFG = { shipSpeed: 16.5, shipLerp: 26, keySpeed: 11.5, keyAccel: 95, keyTurn: 220, keyStop: 150, pointerEase: 18, shipPad: 0.28, laserSpeed: 26, laserCooldown: 0.26, invuln: 0.85, nextWaveDelay: 0.9, missDelay: 1.05, shotsPerWave: 2, freezeSec: 2.6, maxLives: 5 };
 export const PER_STAGE = 4;
 export function stageFor(corrects) {
   const t = Math.max(0, corrects | 0), id = 1 + Math.floor(t / PER_STAGE);
