@@ -79,7 +79,7 @@ export async function createSpace3D(host, { quality } = {}) {
       const tex = textTexture(R.word, { font: "700 66px Fredoka, system-ui, sans-serif", bg: "rgba(12,16,44,.88)", border: "rgba(255,200,120,.75)", color: "#ffeec4", stroke: "rgba(0,0,0,.85)", h: 104 });
       const ph = 0.92, pw = ph * tex.userData.aspect;
       const plate = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false }));
-      plate.position.z = size * 0.6 + 0.3; plate.renderOrder = 10; g.add(plate); v.plate = plate;
+      plate.position.z = size * 0.5 + 0.1; plate.renderOrder = 10; g.add(plate); v.plate = plate;
     } else if (R.kind === "junk") {
       const src = (Math.random() < 0.5 ? junkM : barrelM) || new THREE.Mesh(new THREE.DodecahedronGeometry(0.4));
       const body = fit(src.clone(true), R.r * 2.4); g.add(body); v.body = body;

@@ -70,7 +70,7 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
   const sx = (x) => stage.w / 2 + x * u, sy = (y) => stage.h / 2 - y * u;
   const shipY = () => -halfH + (controlPx() / u) + 1.35;
   const spawnY = () => halfH + 1.35, bottomY = () => -halfH - 1.2;
-  const clampX = (o) => { const n = Math.max(o.hitW || 0.85, o.kind === "word" ? 1.3 : 0) + 0.2, s = Math.max(0.25, halfW - n); o.x = clamp(o.x, -s, s); };
+  const clampX = (o) => { const n = Math.max(o.hitW || 0.85, o.kind === "word" ? 1.9 : 0) + 0.2, s = Math.max(0.25, halfW - n); o.x = clamp(o.x, -s, s); };
 
   // ---------- HUD ----------
   function setLives() { $("#lives").innerHTML = Array.from({ length: CFG.maxLives }, (_, n) => `<i class="life${n < S.lives ? " on" : ""}"></i>`).join(""); }
