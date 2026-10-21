@@ -2,7 +2,7 @@
 //   the target word plays on a loop (baked mp3); 3–4 rocks fall with word labels; shoot the one you heard.
 //   2 shots per wave. Right rock: 100 + 20×streak, next wave. Wrong rock: "oops", streak reset (no life lost).
 //   A word rock reaching the ship: -1 life, same word again. Right rock falling past: same word again.
-//   Junk: shoot +15, crash -1 life. Station pickup +1 life (max 5). Ice pickup -> ICE freezes rocks 2.6 s.
+//   Junk: shoot +15, crash -1 life. Station pickup +1 life (max 5). Ice pickup -> ICE freezes rocks 4 s (pickups keep falling).
 //   Stage up every 4 right (faster, more rocks/junk). Endless: 0 lives = GAME OVER.
 //   Word Master: posts mrj-wm-game-done once right answers reach the word count.
 import { createStage } from "./kit/stage.js";
@@ -32,14 +32,16 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
     <div class="touch${touch ? "" : " hidden"}" id="touch"><div class="steer-zone"><span id="steer-hint">◀ SLIDE ▶</span></div>
       <div class="shoot-zone"><button id="btn-ice" type="button" disabled>ICE</button><button id="btn-shoot" type="button">SHOOT</button></div></div>
     <button class="ice-key${touch ? " hidden" : ""}" id="btn-ice2" type="button" disabled>ICE (I)</button>
-    <div class="freeze" id="freeze"></div>
+    <div class="freeze" id="freeze"><span class="freeze-tag" id="freeze-left">❄ FROZEN</span></div>
     <div class="si-card" id="card">
       <img class="pilot" src="./textures/pilot.webp" alt="" />
       <p class="kicker">MRJ · listen &amp; shoot</p>
       <h1>SOUND INVADERS</h1>
-      <ol class="howto"><li>Listen to the word. Shoot the rock that says it.</li><li>2 shots per word set. Make them count.</li><li>Bump a space station = extra life. Grab ice, tap ICE (or I) to freeze.</li><li>3 lives. Stages never end — they get faster.</li></ol>
+      <div class="h2p" id="h2p"><h2>HOW TO PLAY</h2>
+        <ul class="h2p-list"><li><span class="ic">👂</span>Listen to the word.</li><li><span class="ic">🎯</span>Shoot the rock with that word.</li><li><span class="ic">🛰️</span>Catch a station = +1 life.</li><li><span class="ic">❄️</span>Catch ice, then use ICE to freeze rocks.</li></ul>
+        <div class="h2p-ctl"><div class="ctl"><b>💻 Computer</b><span><kbd>←</kbd><kbd>→</kbd> move</span><span><kbd>Space</kbd> shoot</span><span><kbd>I</kbd> ice</span></div>
+        <div class="ctl"><b>📱 Touch</b><span>👆 Slide left side = move</span><span>👆 Tap right side = shoot</span><span>❄️ Tap ICE = freeze</span></div></div></div>
       <label class="pack-row hidden" id="pack-row">WORD PACK <select id="pack-pick" aria-label="Word pack"></select></label>
-      <p class="device-hint">${touch ? "SLIDE on the left, SHOOT on the right." : "Arrows / A D move · Space / X shoot · I ice"}</p>
       ${wm ? "" : `<a class="howto-link" href="./HOW-TO-PLAY.html">HOW TO PLAY</a>`}
       <button id="btn-start" class="go" type="button">TAP TO START</button>
     </div>
@@ -119,9 +121,9 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
       clampX(R); rocks.push(R);
     });
     for (let k = 0; k < (st.junk || 0); k++) { const J = { kind: "junk", x: -halfW + pad + Math.random() * span, y: spawnY() + 1.4 + Math.random() * 1.6, speed: st.fall * (1.15 + Math.random() * 0.3), r: 0.42 + Math.random() * 0.12, shape: rockShape((Math.random() * 1e9) | 0, 8), rot: 0, spin: 1.5, alive: true }; J.hitW = J.hitH = J.r; clampX(J); rocks.push(J); }
-    if (Math.random() < 0.48 && !rocks.some((r) => r.kind === "station" || r.kind === "ice")) { const P = { kind: Math.random() < 0.5 ? "station" : "ice", x: -halfW + pad + Math.random() * span, y: spawnY() + 2.4 + Math.random() * 1.2, speed: st.fall * 0.72, alive: true, hitW: 0.55, hitH: 0.55 }; clampX(P); rocks.push(P); }
+    if (Math.random() < 0.48 && !rocks.some((r) => r.kind === "station" || r.kind === "ice")) { const P = { kind: Math.random() < 0.5 ? "station" : "ice", x: -halfW + pad + Math.random() * span, y: spawnY() + 2.4 + Math.random() * 1.2, speed: Math.max(1.5, st.fall * 0.9), alive: true, hitW: 0.55, hitH: 0.55 }; clampX(P); rocks.push(P); }
     S.shotsLeft = CFG.shotsPerWave; setAmmo();
-    if (S.freeze > 0) for (const r of rocks) { r._base = r.speed; r.speed = 0; }
+    if (S.freeze > 0) for (const r of rocks) { if (r.kind === "station" || r.kind === "ice") continue; if (r._base == null) r._base = r.speed; r.speed = 0; } // keep the real speed of rocks that were already frozen
     S.waveBusy = false; S.invuln = 0; S.trialStartIso = new Date().toISOString(); S.trialT0 = performance.now(); S.wave++;
     setProgress();
     audio.play("cue", { vol: 0.35 });
@@ -191,12 +193,12 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
   function grab(P) {
     P.alive = false;
     if (P.kind === "station") { S.lives = Math.min(CFG.maxLives, S.lives + 1); setLives(); pop(P.x, P.y, "+1 LIFE"); audio.play("pickup", { vol: 0.6 }); space.pickupFx(P.x, P.y, 0x2ee6d6); }
-    else { S.ice = true; setIce(); pop(P.x, P.y, "ICE"); audio.play("ice", { vol: 0.6 }); space.pickupFx(P.x, P.y, 0xcfe6ff); }
+    else { S.ice = true; setIce(); pop(P.x, P.y, touch ? "ICE! TAP ❄" : "ICE! PRESS I"); audio.play("ice", { vol: 0.6 }); space.pickupFx(P.x, P.y, 0xcfe6ff); }
   }
   function useIce() {
     if (S.state !== "play" || !S.ice) return;
-    S.ice = false; setIce(); S.freeze = CFG.freezeSec; $("#freeze").classList.add("on");
-    for (const t of rocks) { if (t._base == null) t._base = t.speed; t.speed = 0; }
+    S.ice = false; setIce(); S.freeze = CFG.freezeSec; $("#freeze").classList.add("on"); $("#freeze-left").textContent = `FROZEN ${Math.ceil(S.freeze)}`;
+    for (const t of rocks) { if (t.kind === "station" || t.kind === "ice") continue; if (t._base == null) t._base = t.speed; t.speed = 0; } // pickups keep falling so they can still be caught
     fx.flash("#cfe6ff", 0.45); audio.play("ice", { vol: 0.8, rate: 0.8 });
   }
   function stageBanner(n) { fx.float(stage.w / 2, stage.h * 0.4, `STAGE ${n}`, { color: "#ffd36b", size: 56, life: 1.6 }); audio.play("whoosh", { vol: 0.4 }); }
@@ -214,7 +216,7 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
   function gameOver() {
     if (S.state !== "play") return;
     S.state = "end"; stopTargetLoop(); clearRocks({ all: true });
-    audio.play("over", { vol: 0.7 });
+    audio.play("over", { vol: 0.7 }); audio.stopMusic(); setTimeout(() => { if (S.state === "end") audio.stopAll(); }, 1600); // run end: music off, context suspended
     const st = stageFor(S.corrects).id, name = student || "Pilot";
     const entry = { id: `si_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`, module_id: "sound-invaders", name: String(name).slice(0, 16), score: Math.max(0, Math.round(S.score)), stage: st, at: new Date().toISOString() };
     session.push(entry);
@@ -266,7 +268,7 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
   stage.run((dt, st) => {
     const { g, w, h } = st;
     S.cool = Math.max(0, S.cool - dt); S.invuln = Math.max(0, S.invuln - dt);
-    if (S.freeze > 0) { S.freeze = Math.max(0, S.freeze - dt); if (S.freeze <= 0) { for (const r of rocks) if (r._base != null) r.speed = r._base; $("#freeze").classList.remove("on"); } }
+    if (S.freeze > 0) { S.freeze = Math.max(0, S.freeze - dt); const fz = $("#freeze-left"); if (fz) fz.textContent = `FROZEN ${Math.ceil(S.freeze)}`; if (S.freeze <= 0) { for (const r of rocks) if (r._base != null) { r.speed = r._base; delete r._base; } $("#freeze").classList.remove("on"); } }
     S.speedFx += (1 - S.speedFx) * Math.min(1, dt * 2);
     const sY = shipY();
     if (S.state === "play") {
@@ -317,15 +319,22 @@ export async function startGame(host, { pack, wm = false, student = "", quality,
 
   setLives(); setAmmo(); setIce(); setProgress();
   const api = {
-    version: "3.1.0",
+    version: "3.2.0",
     getState: () => {
+      const _fr = rocks.filter((r) => r.kind !== "station" && r.kind !== "ice");
       const right = rocks.find((r) => r.kind === "word" && r.correct && r.alive);
-      return { state: S.state, lives: S.lives, score: S.score, corrects: S.corrects, streak: S.streak, stage: stageFor(S.corrects).id, shotsLeft: S.shotsLeft, shipX: S.shipX, waveBusy: S.waveBusy, ice: S.ice, frozen: S.freeze > 0, rocks: rocks.length, target: right ? { x: right.x, y: right.y, word: right.word } : null, wrong: rocks.filter((r) => r.kind === "word" && !r.correct).map((r) => ({ x: r.x, y: r.y })), shipY: shipY(), records: telemetry.records.length, low_quality: space.low, quality: space.stage.quality, fps: Math.round(space.stage.fps), vel, wm, rule: "wm:right-count" };
+      return { state: S.state, lives: S.lives, score: S.score, corrects: S.corrects, streak: S.streak, stage: stageFor(S.corrects).id, shotsLeft: S.shotsLeft, shipX: S.shipX, waveBusy: S.waveBusy, ice: S.ice, frozen: S.freeze > 0, freezeLeft: S.freeze, rockSpeeds: _fr.map((r) => r.speed), pickups: rocks.filter((r) => r.kind === "station" || r.kind === "ice").map((r) => ({ kind: r.kind, x: r.x, y: r.y, speed: r.speed })), rocks: rocks.length, target: right ? { x: right.x, y: right.y, word: right.word } : null, wrong: rocks.filter((r) => r.kind === "word" && !r.correct).map((r) => ({ x: r.x, y: r.y })), shipY: shipY(), records: telemetry.records.length, low_quality: space.low, quality: space.stage.quality, fps: Math.round(space.stage.fps), vel, wm, rule: "wm:right-count" };
     },
     records: () => telemetry.records.slice(),
     steer: (x) => { S.targetX = x; },
+    _testGiveIce: () => { S.ice = true; setIce(); },
     shoot, useIce, begin,
   };
+  // stop every sound when Word Master closes us, the page is hidden or unloaded
+  const hardStop = () => { stopTargetLoop(); audio.stopAll(); };
+  window.addEventListener("message", (e) => { const d = e.data; if (d === "mrj-stop" || (d && d.type === "mrj-stop")) { hardStop(); if (S.state === "play") { S.state = "end"; clearRocks({ all: true }); } } });
+  window.addEventListener("pagehide", hardStop);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) hardStop(); else if (S.state === "play") { audio.unlock(); audio.startMusic(); startTargetLoop(bag.current); } });
   window.MRJSoundInvaders = api;
   return api;
 }
