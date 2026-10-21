@@ -20,6 +20,8 @@ html, body { background: #05060f; }
 .si-combo.on { animation: comboIn 1.4s ease-out forwards; }
 @keyframes comboIn { 0% { opacity: 0; transform: translateX(-50%) scale(.6); } 15% { opacity: 1; transform: translateX(-50%) scale(1.15); } 30% { transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
 .freeze { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(160,210,255,0) 50%, rgba(160,210,255,.45)); opacity: 0; transition: opacity .3s; } .freeze.on { opacity: 1; }
+.freeze { background: radial-gradient(ellipse at center, rgba(160,210,255,.08) 35%, rgba(170,220,255,.6)); box-shadow: inset 0 0 0 6px rgba(200,235,255,.7); z-index: 5; }
+.freeze-tag { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font: 700 28px Fredoka, sans-serif; color: #e8f6ff; text-shadow: 0 0 12px #6fc4ff, 0 2px 0 #1a3a6a; letter-spacing: .08em; }
 .touch { position: absolute; left: 0; right: 0; bottom: 0; height: calc(118px + env(safe-area-inset-bottom)); display: flex; pointer-events: none; }
 .touch > * { pointer-events: auto; }
 .steer-zone { flex: 1; display: flex; align-items: center; justify-content: center; border-top: 1px solid rgba(46,230,214,.2); background: linear-gradient(transparent, rgba(46,230,214,.08)); }
@@ -47,3 +49,8 @@ html, body { background: #05060f; }
 .board-title { font-size: 13px; letter-spacing: .2em; color: #2ee6d6; margin: 12px 0 6px; }
 .board { list-style: none; padding: 0; margin: 0; } .board li { display: flex; justify-content: space-between; padding: 4px 10px; border-radius: 8px; } .board li.mine { background: rgba(255,211,107,.18); color: #ffd36b; }
 .mute { z-index: 20; }
+
+.h2p { text-align: left; margin: 0 0 10px; } .h2p h2 { margin: 0 0 6px; text-align: center; font-size: 18px; letter-spacing: .12em; color: #ffd36b; }
+.h2p-list { list-style: none; margin: 0 0 8px; padding: 0; color: #e6dcc6; font-size: 15px; line-height: 1.5; } .h2p .ic { display: inline-block; width: 1.6em; }
+.h2p-ctl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .h2p .ctl { background: rgba(255,255,255,.06); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 3px; font-size: 13px; color: #cbbfa6; }
+.h2p .ctl b { color: #7ff5ff; font-size: 14px; } .h2p kbd { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 3px; border: 1px solid #7ff5ff; border-radius: 5px; background: rgba(127,245,255,.12); color: #fff; font: 700 12px Fredoka, sans-serif; text-align: center; }

@@ -44,7 +44,7 @@ export async function createSpace3D(host, { quality } = {}) {
   // ship
   const ship = new THREE.Group(); scene.add(ship);
   const hull = shipM ? fit(shipM, 2.0) : new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.6, 6), new THREE.MeshStandardMaterial({ color: 0xdfe8ff }));
-  hull.rotation.set(Math.PI / 2, Math.PI, 0); hull.position.y = 0.25; // Kenney craft nose -> +y (up the screen)
+  hull.rotation.set(Math.PI / 2, 0, 0); hull.position.y = 0.25; // Kenney craft nose is -z: rotate so nose -> +y (up the screen, toward enemies), top faces camera
   const hullPivot = new THREE.Group(); hullPivot.add(hull); ship.add(hullPivot);
   const flame = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: 0x6fe6ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
   flame.position.set(0, -0.95, 0.1); flame.scale.set(0.7, 1.3, 1); ship.add(flame);
