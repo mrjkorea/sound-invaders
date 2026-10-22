@@ -2,6 +2,7 @@ import "@fontsource/fredoka/latin-500.css";
 import "@fontsource/fredoka/latin-700.css";
 import "./kit/base.css";
 import "./style.css";
+import { showGlFatal } from "./kit/gl-guard.js";
 import { loadPack } from "./pack.js";
 import { startGame } from "./game.js";
 const app = document.getElementById("app");
@@ -34,4 +35,4 @@ function packPicker(current) {
     sel.addEventListener("change", () => { const u = new URL(location.href); u.searchParams.set("pack", sel.value); location.assign(u.pathname + u.search + u.hash); });
   }).catch(() => {});
 }
-boot().catch((err) => { console.error(err); app.innerHTML = `<div class="fatal"><h2>UH-OH</h2><p></p></div>`; app.querySelector(".fatal p").textContent = err.message || String(err); });
+boot().catch((err) => { console.error(err); showGlFatal(app, "Space Shooter", err); });
